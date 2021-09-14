@@ -1,33 +1,18 @@
 const { spawn } = require("child_process");
 const path = require("path");
 
-exports.cOnly = (src, cb) => {
-  var filename = path.parse(src).name; // codec
-  var extension = path.parse(src).ext; // .c
+const cCompiler = (src, cb) => {
+  var filename = path.parse(src).name;
+  var extension = path.parse(src).ext;
   if (extension === ".c") {
-    var args_compile = []; // ['codec.c', '-o','codec.out']
+    var args_compile = [];
     args_compile[0] = src;
     args_compile[1] = "-o";
     args_compile[2] = filename + ".out";
-    var cmd_run = "./" + filename + ".out";
+    var cmd_run = "../code/" + filename + ".out";
     execute("gcc", args_compile, cmd_run, [], cb);
   } else {
     console.log(src + " is not a c file.");
-  }
-};
-
-exports.cPlusPlus = (src) => {
-  var filename = path.parse(src).name; // codec
-  var extension = path.parse(src).ext; // .cpp
-  if (extension === ".cpp") {
-    var args_compile = []; //['codec.cpp', '-o','codec.out']
-    args_compile[0] = src;
-    args_compile[1] = "-o";
-    args_compile[2] = filename + ".out";
-    var cmd_run = "./" + filename + ".out";
-    execute("g++", args_compile, cmd_run, []);
-  } else {
-    console.log(src + " is not a c++ file.");
   }
 };
 
@@ -36,6 +21,7 @@ const execute = (compiler, args_compile, command, args_run, cb) => {
 
   compile.stdout.on("data", (data) => {
     console.log("data: ", data);
+    cb(String(data));
   });
 
   compile.stderr.on("data", (err) => {
@@ -46,11 +32,9 @@ const execute = (compiler, args_compile, command, args_run, cb) => {
     if (data === 0) {
       var run = spawn(command, args_run);
       run.stdout.on("data", function (output) {
-        // console.log(String(output));
         cb(String(output));
       });
       run.stderr.on("data", function (output) {
-        // console.log("stderr: " + String(output));
         cb(String(output));
       });
       run.on("close", function (output) {
@@ -59,3 +43,5 @@ const execute = (compiler, args_compile, command, args_run, cb) => {
     }
   });
 };
+
+module.exports = cCompiler;
